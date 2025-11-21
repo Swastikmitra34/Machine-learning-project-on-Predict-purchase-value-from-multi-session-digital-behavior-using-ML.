@@ -1,0 +1,17 @@
+# Summary of all models
+model_results = {
+    'Baseline RF': baseline_r2,
+    'Ridge': ridge_r2,
+    'Lasso': lasso_r2,
+    'SGD': sgd_r2,
+    'KNN': knn_r2,
+    'XGBoost': r2_val_xgb,
+    'LightGBM': lgb_r2,
+    'Gradient Boosting': gb_r2,
+    'Stacking': stack_r2,
+    'MLP': mlp_r2
+}
+
+print("\n=== Model Performance Summary ===")
+for model, score in sorted(model_results.items(), key=lambda x: x[1], reverse=True):
+    print(f"{model}: {score:.4f}")
