@@ -1,0 +1,59 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+df = pd.read_csv("/kaggle/input/engage-2-value-from-clicks-to-conversions/train_data.csv")
+# --- Q1: Correlation between pageViews and purchaseValue for mobile users only ---
+mobile_df = df[df['deviceType'] == 'mobile']
+corr_mobile = mobile_df['pageViews'].corr(mobile_df['purchaseValue'])
+print(f"Q1. Correlation (mobile only): {corr_mobile:.2f}")
+
+
+
+total_purchases = 23985
+val_purchase_ratio = 0.2068
+val_purchases = total_purchases * 0.3  # 30% data in validation
+train_purchases = total_purchases - val_purchases
+print(f"Q2. Approx. purchases in training set: {int(train_purchases)}")
+
+
+# --- Q3: Standard deviation after normalization ---
+scaler = StandardScaler()
+norm_purchase = scaler.fit_transform(df[['purchaseValue']].fillna(0))
+std_norm = np.std(norm_purchase)
+print(f"Q3. Std deviation after normalization: {std_norm:.2f}")
+
+
+# --- Q4: Which coefficient likely larger in linear regression ---
+X = df[['totalHits', 'pageViews']].fillna(0)
+y = df['purchaseValue'].fillna(0)
+model = LinearRegression().fit(X, y)
+coefs = dict(zip(['totalHits', 'pageViews'], model.coef_))
+print("Q4. Coefficients:", coefs)
+larger_feature = max(coefs, key=lambda k: abs(coefs[k]))
+print(f"Larger magnitude: {larger_feature}")
+
+
+# --- Q5: Best loss function for SGD binary classification ---
+print("Q5. Best loss function: Binary Cross-Entropy Loss")
+
+# --- Q6: Missing value % in totals.bounces ---
+missing_bounces = df['totals.bounces'].isna().mean() * 100
+print(f"Q6. Missing % in 'totals.bounces': {missing_bounces:.2f}%")
+
+
+# --- Q7: High correlation between totalHits and pageViews (~0.986) ---
+corr = df[['totalHits', 'pageViews']].corr().iloc[0, 1]
+print(f"Q7. Correlation: {corr:.3f}")
+if corr > 0.95:
+    print("Recommendation: Remove one of the two features to avoid multicollinearity.")
+# Answer: Remove one of the two highly correlated features
+
+# --- Q8: Effect of removing top 1% outliers on R² ---
+threshold = df['purchaseValue'].quantile(0.99)
+filtered_df = df[df['purchaseValue'] <= threshold]
+X_filtered = filtered_df[['totalHits', 'pageViews']].fillna(0)
+y_filtered = filtered_df['purchaseValue'].fillna(0)
+model_filtered = LinearRegression().fit(X_filtered, y_filtered)
+r2 = model_filtered.score(X_filtered, y_filtered)
+print(f"Q8. R² after removing top 1% outliers: {r2:.2f}")
