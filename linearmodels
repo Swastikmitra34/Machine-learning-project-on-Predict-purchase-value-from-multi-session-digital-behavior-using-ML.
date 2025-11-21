@@ -1,0 +1,24 @@
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+from sklearn.linear_model import SGDRegressor
+
+# Model 1: Ridge Regression
+ridge_model = Ridge(alpha=1.0)
+ridge_model.fit(X_train_scaled, y_train)
+y_pred_ridge = ridge_model.predict(X_val_scaled)
+ridge_r2 = r2_score(y_val, y_pred_ridge)
+
+# Model 2: Lasso Regression
+lasso_model = Lasso(alpha=0.1)
+lasso_model.fit(X_train_scaled, y_train)
+y_pred_lasso = lasso_model.predict(X_val_scaled)
+lasso_r2 = r2_score(y_val, y_pred_lasso)
+
+# Model 3: SGD Regressor
+sgd_model = SGDRegressor(max_iter=1000, tol=1e-3, random_state=42)
+sgd_model.fit(X_train_scaled, y_train)
+y_pred_sgd = sgd_model.predict(X_val_scaled)
+sgd_r2 = r2_score(y_val, y_pred_sgd)
+
+print(f"Ridge R² Score: {ridge_r2:.4f}")
+print(f"Lasso R² Score: {lasso_r2:.4f}")
+print(f"SGD R² Score: {sgd_r2:.4f}")
