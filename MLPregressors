@@ -1,0 +1,14 @@
+from sklearn.neural_network import MLPRegressor
+
+mlp_model = MLPRegressor(
+    hidden_layer_sizes=(100, 50),
+    activation='relu',
+    solver='adam',
+    alpha=0.001,
+    max_iter=500,
+    random_state=42
+)
+mlp_model.fit(X_train_scaled, y_train)
+y_pred_mlp = mlp_model.predict(X_val_scaled)
+mlp_r2 = r2_score(y_val, y_pred_mlp)
+print(f"MLP R² Score: {mlp_r2:.4f}")
