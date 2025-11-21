@@ -1,0 +1,66 @@
+# Prepare features and target - ONLY use encoded numerical features
+feature_cols = []
+
+# Add original numerical columns (excluding id and target)
+numerical_cols = train_features.select_dtypes(include=[np.number]).columns.tolist()
+for col in numerical_cols:
+    if col not in ['id', 'purchaseValue']:
+        feature_cols.append(col)
+
+# Add encoded categorical columns (these should all be numeric now)
+for col in train_features.columns:
+    if col.endswith('_encoded') and col not in feature_cols:
+        feature_cols.append(col)
+
+print(f"Selected features ({len(feature_cols)}): {feature_cols}")
+
+# Prepare data and ensure everything is numeric
+X = train_features[feature_cols].copy()
+m = train_df['purchaseValue'].copy()
+y = np.log1p(m)
+
+
+
+# CRITICAL: Force convert everything to numeric and handle any remaining issues
+print("Converting all features to numeric...")
+
+#approach - convert the entire DataFrame at once
+try:
+    X = X.apply(pd.to_numeric, errors='coerce')
+except Exception as e:
+    print(f"Bulk conversion failed: {e}")
+    # Fallback: convert column by column
+    for col in X.columns:
+        try:
+            X[col] = pd.to_numeric(X[col], errors='coerce')
+        except Exception as col_error:
+            print(f"Error converting column {col}: {col_error}")
+            # Last resort: convert to string then numeric
+            X[col] = pd.to_numeric(X[col].astype(str), errors='coerce')
+
+# Fill any NaN values that resulted from coercion
+X = X.fillna(0)
+print("Feature conversion completed!")
+
+# Verify data types
+print(f"Data types in X after conversion:")
+non_numeric = X.select_dtypes(exclude=[np.number]).columns.tolist()
+if len(non_numeric) > 0:
+    print(f"WARNING: Still have non-numeric columns: {non_numeric}")
+    # Force convert these too
+    for col in non_numeric:
+        X[col] = pd.to_numeric(X[col], errors='coerce').fillna(0)
+else:
+    print("All features are numeric!")
+
+print(f"Final feature matrix shape: {X.shape}")
+print(f"Target shape: {y.shape}")
+print(f"Any missing values in X: {X.isnull().sum().sum()}")
+print(f"Any missing values in y: {y.isnull().sum()}")
+
+# Split data
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+
+print(f"Training set: {X_train.shape}")
+print(f"Validation set: {X_val.shape}")
+print(f"Target range: {y.min():.2f} to {y.max():.2f}")
